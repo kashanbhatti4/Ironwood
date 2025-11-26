@@ -1,0 +1,58 @@
+export const products = [
+    // Classic Collection
+    {
+        id: 'p1',
+        handle: 'classic-full-grain-leather-belt',
+        title: 'Classic Full-Grain Leather Belt',
+        description: 'A timeless staple crafted from premium full-grain leather. Designed for durability and daily wear, this belt ages beautifully, developing a unique patina over time.',
+        price: 85,
+        category: 'Classic Collection',
+        images: ['/placeholder/belt1.jpg'],
+    },
+    {
+        id: 'p2',
+        handle: 'classic-minimal-stitch-belt',
+        title: 'Classic Minimal Stitch Belt',
+        description: 'Featuring subtle stitching details and a sleek profile, this belt bridges the gap between formal and casual. The polished buckle adds a touch of refinement.',
+        price: 95,
+        category: 'Classic Collection',
+        images: ['/placeholder/belt2.jpg'],
+    },
+    // Heritage Collection
+    {
+        id: 'p3',
+        handle: 'heritage-aged-leather-belt',
+        title: 'Heritage Aged-Leather Belt',
+        description: 'Treated for a vintage look and feel right out of the box. The aged leather offers a rugged aesthetic that pairs perfectly with denim and boots.',
+        price: 110,
+        category: 'Heritage Collection',
+        images: ['/placeholder/belt3.jpg'],
+    },
+    {
+        id: 'p4',
+        handle: 'heritage-brass-buckle-belt',
+        title: 'Heritage Brass-Buckle Belt',
+        description: 'Defined by its solid brass buckle and robust leather strap. This belt is a tribute to traditional craftsmanship and enduring style.',
+        price: 120,
+        category: 'Heritage Collection',
+        images: ['/placeholder/belt4.jpg'],
+    },
+    {
+        id: 'p5',
+        handle: 'heritage-burnished-leather-belt',
+        title: 'Heritage Burnished Leather Belt',
+        description: 'Hand-burnished edges give this belt a sophisticated finish. The rich color depth and smooth texture make it a standout accessory.',
+        price: 115,
+        category: 'Heritage Collection',
+        images: ['/placeholder/belt5.jpg'],
+    },
+    {
+        id: 'p6',
+        handle: 'heritage-hand-finished-belt',
+        title: 'Heritage Hand-Finished Belt',
+        description: 'Meticulously finished by hand, ensuring every detail is perfect. This belt represents the pinnacle of our heritage collection.',
+        price: 130,
+        category: 'Heritage Collection',
+        images: ['/placeholder/belt6.jpg'],
+    },
+];
