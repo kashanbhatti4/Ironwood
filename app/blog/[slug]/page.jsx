@@ -1,21 +1,73 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import SectionContainer from '@/components/ui/SectionContainer';
-import { blogs } from '@/data/blogs';
+import PortableTextRenderer from '@/components/PortableTextRenderer';
+import { getPostBySlug, getAllPosts, urlFor } from '@/lib/sanity';
+
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }) {
+    const { slug } = await params;
+
+    try {
+        const post = await getPostBySlug(slug);
+
+        if (!post) {
+            return { title: 'Blog Post Not Found' };
+        }
+
+        return {
+            title: post.seo?.title || post.title,
+            description: post.seo?.description || post.excerpt,
+            openGraph: {
+                title: post.seo?.title || post.title,
+                description: post.seo?.description || post.excerpt,
+                images: post.seo?.ogImage
+                    ? [urlFor(post.seo.ogImage).width(1200).height(630).url()]
+                    : post.coverImage
+                        ? [urlFor(post.coverImage).width(1200).height(630).url()]
+                        : [],
+            },
+        };
+    } catch (error) {
+        return { title: 'Blog Post' };
+    }
+}
 
 export async function generateStaticParams() {
-    return blogs.map((blog) => ({
-        slug: blog.slug,
-    }));
+    try {
+        const posts = await getAllPosts();
+        return posts.map((post) => ({
+            slug: post.slug,
+        }));
+    } catch (error) {
+        return [];
+    }
 }
 
 export default async function BlogPostPage({ params }) {
     const { slug } = await params;
-    const blog = blogs.find(b => b.slug === slug);
+    const post = await getPostBySlug(slug);
 
-    if (!blog) {
+    if (!post) {
         notFound();
     }
+
+    const coverImageUrl = post.coverImage
+        ? urlFor(post.coverImage).width(1200).height(600).url()
+        : null;
+
+    const publishedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    const category = post.categories && post.categories.length > 0
+        ? post.categories[0].title
+        : null;
+
+    const authorName = post.author?.name || 'Anonymous';
 
     return (
         <SectionContainer>
@@ -37,41 +89,96 @@ export default async function BlogPostPage({ params }) {
             <article className="max-w-3xl mx-auto">
                 {/* Header */}
                 <header className="mb-8 space-y-4">
-                    <div className="text-xs text-gray-500 uppercase tracking-wider">
-                        {blog.category}
-                    </div>
+                    {category && (
+                        <div className="text-xs text-gray-500 uppercase tracking-wider">
+                            {category}
+                        </div>
+                    )}
+
                     <h1 className="text-4xl md:text-5xl font-light tracking-tight text-gray-900">
-                        {blog.title}
+                        {post.title}
                     </h1>
+
                     <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span>By {blog.author}</span>
+                        <div className="flex items-center gap-2">
+                            {post.author?.image && (
+                                <img
+                                    src={urlFor(post.author.image).width(40).height(40).url()}
+                                    alt={authorName}
+                                    className="w-6 h-6 rounded-full object-cover"
+                                />
+                            )}
+                            <span>By {authorName}</span>
+                        </div>
                         <span>•</span>
-                        <time dateTime={blog.publishedAt}>
-                            {new Date(blog.publishedAt).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                            })}
-                        </time>
+                        <time dateTime={post.publishedAt}>{publishedDate}</time>
+                        {post.readingTime && (
+                            <>
+                                <span>•</span>
+                                <span>{post.readingTime} min read</span>
+                            </>
+                        )}
                     </div>
                 </header>
 
                 {/* Featured Image */}
-                <div className="mb-12 aspect-[2/1] w-full bg-gray-100 overflow-hidden">
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
-                        {blog.title}
+                {coverImageUrl && (
+                    <div className="mb-12 aspect-[2/1] w-full bg-gray-100 overflow-hidden">
+                        <img
+                            src={coverImageUrl}
+                            alt={post.title}
+                            className="w-full h-full object-cover"
+                        />
                     </div>
-                </div>
+                )}
 
                 {/* Content */}
                 <div className="prose prose-lg max-w-none">
                     <p className="text-lg font-light leading-relaxed text-gray-700 mb-6">
-                        {blog.excerpt}
+                        {post.excerpt}
                     </p>
-                    <p className="font-light leading-relaxed text-gray-700">
-                        {blog.content}
-                    </p>
+
+                    {post.content && (
+                        <PortableTextRenderer content={post.content} />
+                    )}
                 </div>
+
+                {/* Tags */}
+                {post.tags && post.tags.length > 0 && (
+                    <div className="mt-12 pt-8 border-t border-gray-200">
+                        <div className="flex flex-wrap gap-2">
+                            {post.tags.map((tag) => (
+                                <span
+                                    key={tag.slug}
+                                    className="px-3 py-1 bg-gray-100 text-xs text-gray-600 rounded-full"
+                                >
+                                    {tag.title}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Author Bio */}
+                {post.author && post.author.bio && (
+                    <div className="mt-12 pt-8 border-t border-gray-200">
+                        <div className="flex items-start gap-4">
+                            {post.author.image && (
+                                <img
+                                    src={urlFor(post.author.image).width(80).height(80).url()}
+                                    alt={post.author.name}
+                                    className="w-16 h-16 rounded-full object-cover"
+                                />
+                            )}
+                            <div>
+                                <h3 className="font-medium text-gray-900 mb-1">About {post.author.name}</h3>
+                                <div className="text-sm text-gray-600 font-light">
+                                    <PortableTextRenderer content={post.author.bio} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </article>
         </SectionContainer>
     );
